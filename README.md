@@ -50,6 +50,4 @@ Joel Domenech
 
 Ethan Hatcher
 
-Avigail Laing
-
 Tyler Hering
