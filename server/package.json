@@ -1,0 +1,16 @@
+{
+  "name": "swamp-auth",
+  "version": "1.0.0",
+  "description": "Backend for SwampStudy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
+}

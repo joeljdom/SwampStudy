@@ -1,0 +1,35 @@
+:root {
+  --uf-blue:  #0021A5;
+  --uf-orange:#FA4616;
+  --bg:       #f0f6ff;
+  --card:     #ffffff;
+  --text:     #1b1b1b;
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+  padding: 20px;
+}
+
+.login-root { max-width: 420px; margin: 40px auto; }
+h1 { text-align: center; margin-bottom: 10px; }
+.tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+.tabs button { padding: 8px 12px; border: 1px solid #ccc; background: #f5f5f5; cursor: pointer; border-radius: 8px; }
+.tabs button.active { background: #2c7be5; color: white; border-color: #2c7be5; }
+form { display: grid; gap: 10px; background: #fafafa; padding: 16px; border: 1px solid #eee; border-radius: 12px; }
+input { padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
+.btn { padding: 10px; border: none; border-radius: 8px; background: #2c7be5; color: white; cursor: pointer; }
+.error { color: #c00; height: 18px; font-size: 13px; }
+
+.btn.active { background: var(--uf-orange); border: 1px solid rgba(0,0,0,0.08); }
+
+.container { max-width: 720px; margin: 40px auto 80px; padding: 0 16px; }
+.banner { background: var(--uf-blue); color: white; padding: 10px 0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+.banner img { max-width: 320px; width: 60%; height: auto; display: block; margin: 0 auto; }
+h1 { color: var(--uf-blue); font-size: 2rem; margin: 24px 0 12px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.card { margin-top: 18px; background: var(--card); padding: 18px; border-radius: 14px; border: 1px solid #e5ecff; box-shadow: 0 6px 18px rgba(0,0,0,.08); line-height: 1.5; }

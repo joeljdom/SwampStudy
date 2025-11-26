@@ -1,0 +1,185 @@
+import React, { useState, useEffect } from 'react'
+
+type Props = {
+  username: string
+  onBack: () => void
+}
+
+type ProfileData = {
+  classes: string[]
+  studyPreference: string
+  academicYear: string
+  studyGoal: string
+  studyFrequency: string
+}
+
+type Match = {
+  username: string
+  profile: ProfileData
+  sharedClasses: string[]
+  compatibilityScore: number
+  commonFields: {
+    studyPreference: boolean
+    academicYear: boolean
+    studyGoal: boolean
+    studyFrequency: boolean
+  }
+}
+
+export default function Matches({ username, onBack }: Props) {
+  const [matches, setMatches] = useState<Match[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [userProfile, setUserProfile] = useState<ProfileData | null>(null)
+
+  useEffect(() => {
+    async function loadMatches() {
+      setLoading(true)
+      setError(null)
+      try {
+        // Fetch current user's profile
+        const userRes = await fetch(`/api/profile/${encodeURIComponent(username)}`)
+        if (!userRes.ok) throw new Error('Failed to load your profile')
+        const currentProfile = await userRes.json()
+        setUserProfile(currentProfile)
+
+        // Fetch all profiles
+        const allRes = await fetch('/api/profiles')
+        if (!allRes.ok) throw new Error('Failed to load profiles')
+        const allProfiles = await allRes.json()
+
+        // Calculate matches
+        const matchList = calculateMatches(username, currentProfile, allProfiles)
+        setMatches(matchList)
+      } catch (err: any) {
+        setError(err.message || 'Network error')
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadMatches()
+  }, [username])
+
+  function calculateMatches(
+    currentUser: string,
+    currentProfile: ProfileData,
+    allProfiles: Record<string, ProfileData>
+  ): Match[] {
+    const matchList: Match[] = []
+
+    for (const [otherUsername, otherProfile] of Object.entries(allProfiles)) {
+      if (otherUsername === currentUser) continue
+
+      // Find shared classes
+      const sharedClasses = currentProfile.classes.filter(c =>
+        otherProfile.classes.includes(c)
+      )
+
+      // If no shared classes, skip this user
+      if (sharedClasses.length === 0) continue
+
+      // Calculate compatibility score based on matching fields
+      let score = 0
+      const commonFields = {
+        studyPreference: false,
+        academicYear: false,
+        studyGoal: false,
+        studyFrequency: false
+      }
+
+      if (currentProfile.studyPreference === otherProfile.studyPreference) {
+        score += 1
+        commonFields.studyPreference = true
+      }
+      if (currentProfile.academicYear === otherProfile.academicYear) {
+        score += 1
+        commonFields.academicYear = true
+      }
+      if (currentProfile.studyGoal === otherProfile.studyGoal) {
+        score += 1
+        commonFields.studyGoal = true
+      }
+      if (currentProfile.studyFrequency === otherProfile.studyFrequency) {
+        score += 1
+        commonFields.studyFrequency = true
+      }
+
+      matchList.push({
+        username: otherUsername,
+        profile: otherProfile,
+        sharedClasses,
+        compatibilityScore: score,
+        commonFields
+      })
+    }
+
+    // Sort by compatibility score (descending) then by shared classes count (descending)
+    return matchList.sort((a, b) => {
+      if (b.compatibilityScore !== a.compatibilityScore) {
+        return b.compatibilityScore - a.compatibilityScore
+      }
+      return b.sharedClasses.length - a.sharedClasses.length
+    })
+  }
+
+  return (
+    <div className="container">
+      <div className="banner"><img src="/gatorbanner.png" alt="Swamp Study" /></div>
+      <h2>Study Matches</h2>
+      <button className="btn" onClick={onBack} style={{ marginBottom: 16 }}>← Back</button>
+
+      {loading && <p>Loading matches...</p>}
+      {error && <div className="error">{error}</div>}
+
+      {!loading && !error && matches.length === 0 && (
+        <div className="card">
+          <p>No matches found. Complete your profile to find study partners!</p>
+        </div>
+      )}
+
+      {!loading && !error && matches.length > 0 && (
+        <div>
+          <p style={{ marginBottom: 16 }}>
+            Found <strong>{matches.length}</strong> study partner{matches.length !== 1 ? 's' : ''} with shared classes.
+          </p>
+          {matches.map((match, idx) => (
+            <div key={match.username} className="card" style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0' }}>{match.username}</h3>
+                  <p style={{ margin: '4px 0' }}>
+                    <strong>Shared Classes:</strong> {match.sharedClasses.join(', ')}
+                  </p>
+                  <p style={{ margin: '4px 0' }}>
+                    <strong>Academic Year:</strong> {match.profile.academicYear}
+                  </p>
+                  <p style={{ margin: '4px 0' }}>
+                    <strong>Study Preference:</strong> {match.profile.studyPreference}
+                  </p>
+                  <p style={{ margin: '4px 0' }}>
+                    <strong>Study Goal:</strong> {match.profile.studyGoal}
+                  </p>
+                  <p style={{ margin: '4px 0' }}>
+                    <strong>Study Frequency:</strong> {match.profile.studyFrequency}
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right', minWidth: 120 }}>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2c7be5' }}>
+                    {match.compatibilityScore}/4
+                  </div>
+                  <p style={{ margin: '4px 0', fontSize: '12px' }}>Compatibility</p>
+                  <div style={{ marginTop: 8, fontSize: '12px' }}>
+                    {match.commonFields.studyPreference && <p>✓ Study Preference</p>}
+                    {match.commonFields.academicYear && <p>✓ Academic Year</p>}
+                    {match.commonFields.studyGoal && <p>✓ Study Goal</p>}
+                    {match.commonFields.studyFrequency && <p>✓ Study Frequency</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

@@ -2,49 +2,49 @@ HOW TO RUN
 
 Install Node.js (LTS) from https://nodejs.org/
 
-Clone the repository:
+Project layout and how to run
 
-git clone https://github.com/{USER}/SwampStudy.git
-cd SwampStudy
+This repo is organized as a small monorepo with two main folders:
 
-Install dependencies:
+- `server/` - Express backend (API routes, local JSON data)
+- `client/` - Vite + React frontend
 
+Quick start
+
+1. Install Node.js (LTS) from https://nodejs.org/
+2. From the repository root, install dev tooling (concurrently):
+
+```powershell
 npm install
+```
 
-Start the server:
+3a. Start both server and client concurrently (recommended):
 
-npm start
+```powershell
+npm run dev
+```
 
-Open your browser and go to:
-http://localhost:3000/
+3b. Or run them separately:
 
+```powershell
+# start backend
+npm --prefix server install
+npm --prefix server start
 
+# in a second terminal, start frontend
+npm --prefix client install
+npm --prefix client run dev
+```
 
-HOW TO RUN TESTS
+Open the Vite dev URL printed in the client terminal (usually `http://localhost:5173`). The frontend proxies API requests to the backend (port 3000).
 
-This project includes basic unit tests for backend functionality (signup and login routes).
+Notes
 
-Run the tests with:
+- Backend data files (`users.json`, `availability.json`) live in `server/`.
+- Frontend static assets are served from the repository `public/` folder (so both client and server can access the same images).
+- If you change dependencies, run `npm --prefix <folder> install` in the specific folder.
 
-npm test
-
-The tests use Node’s built-in test runner and Supertest to verify correct API responses.
-
-
-
-WHAT IT DOES
-
-Frontend: HTML, CSS, and JavaScript
-
-Backend: Node.js with Express
-
-Data stored locally in users.json
-
-Demonstrates full-stack functionality with frontend, backend, and data persistence
-
-
-
-TEAM JEAT
+Team
 
 Joel Domenech
 

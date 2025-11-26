@@ -1,21 +1,12 @@
 {
-  "name": "swamp-auth",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "name": "swampstudy-monorepo",
+  "private": true,
   "scripts": {
-    "test": "node --test",
-    "start": "node server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "dependencies": {
-    "express": "^5.1.0"
+    "dev": "concurrently \"npm --prefix server run start\" \"npm --prefix client run dev\"",
+    "start:server": "npm --prefix server start",
+    "client:dev": "npm --prefix client run dev"
   },
   "devDependencies": {
-    "supertest": "^7.1.4"
+    "concurrently": "^8.0.1"
   }
-  
 }
