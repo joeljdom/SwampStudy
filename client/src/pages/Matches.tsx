@@ -28,6 +28,8 @@ type Match = {
 
 export default function Matches({ username, onBack }: Props) {
   const [matches, setMatches] = useState<Match[]>([])
+  const [friends, setFriends] = useState<string[]>([])
+  const [pending, setPending] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userProfile, setUserProfile] = useState<ProfileData | null>(null)
@@ -48,8 +50,17 @@ export default function Matches({ username, onBack }: Props) {
         if (!allRes.ok) throw new Error('Failed to load profiles')
         const allProfiles = await allRes.json()
 
-        // Calculate matches
-        const matchList = calculateMatches(username, currentProfile, allProfiles)
+        // Fetch friends and pending
+        const friendsRes = await fetch(`/api/relationships/friends/${encodeURIComponent(username)}`)
+        const friendsData = friendsRes.ok ? await friendsRes.json() : { friends: [] }
+        setFriends(friendsData.friends || [])
+
+        const pendingRes = await fetch(`/api/relationships/pending/${encodeURIComponent(username)}`)
+        const pendingData = pendingRes.ok ? await pendingRes.json() : { pending: [] }
+        setPending(pendingData.pending || [])
+
+        // Calculate matches (excluding friends and pending requests sent by user)
+        const matchList = calculateMatches(username, currentProfile, allProfiles, friendsData.friends || [])
         setMatches(matchList)
       } catch (err: any) {
         setError(err.message || 'Network error')
@@ -63,12 +74,14 @@ export default function Matches({ username, onBack }: Props) {
   function calculateMatches(
     currentUser: string,
     currentProfile: ProfileData,
-    allProfiles: Record<string, ProfileData>
+    allProfiles: Record<string, ProfileData>,
+    currentFriends: string[]
   ): Match[] {
     const matchList: Match[] = []
 
     for (const [otherUsername, otherProfile] of Object.entries(allProfiles)) {
       if (otherUsername === currentUser) continue
+      if (currentFriends.includes(otherUsername)) continue
 
       // Find shared classes
       const sharedClasses = currentProfile.classes.filter(c =>
@@ -122,6 +135,24 @@ export default function Matches({ username, onBack }: Props) {
     })
   }
 
+  async function handleAddMatch(matchUsername: string) {
+    try {
+      const res = await fetch('/api/relationships/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: username, to: matchUsername })
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to send request')
+      }
+      // Remove from matches
+      setMatches(matches.filter(m => m.username !== matchUsername))
+    } catch (err: any) {
+      alert(`Error: ${err.message}`)
+    }
+  }
+
   return (
     <div className="container">
       <div className="banner"><img src="/gatorbanner.png" alt="Swamp Study" /></div>
@@ -145,7 +176,7 @@ export default function Matches({ username, onBack }: Props) {
           {matches.map((match, idx) => (
             <div key={match.username} className="card" style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <div>
+                <div style={{ flex: 1 }}>
                   <h3 style={{ margin: '0 0 8px 0' }}>{match.username}</h3>
                   <p style={{ margin: '4px 0' }}>
                     <strong>Shared Classes:</strong> {match.sharedClasses.join(', ')}
@@ -163,17 +194,24 @@ export default function Matches({ username, onBack }: Props) {
                     <strong>Study Frequency:</strong> {match.profile.studyFrequency}
                   </p>
                 </div>
-                <div style={{ textAlign: 'right', minWidth: 120 }}>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2c7be5' }}>
+                <div style={{ textAlign: 'right', minWidth: 140 }}>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2c7be5', marginBottom: 12 }}>
                     {match.compatibilityScore}/4
                   </div>
-                  <p style={{ margin: '4px 0', fontSize: '12px' }}>Compatibility</p>
-                  <div style={{ marginTop: 8, fontSize: '12px' }}>
-                    {match.commonFields.studyPreference && <p>✓ Study Preference</p>}
-                    {match.commonFields.academicYear && <p>✓ Academic Year</p>}
-                    {match.commonFields.studyGoal && <p>✓ Study Goal</p>}
-                    {match.commonFields.studyFrequency && <p>✓ Study Frequency</p>}
+                  <p style={{ margin: '4px 0', fontSize: '12px', marginBottom: 12 }}>Compatibility</p>
+                  <div style={{ marginBottom: 12, fontSize: '12px' }}>
+                    {match.commonFields.studyPreference && <p style={{ margin: '2px 0' }}>✓ Study Preference</p>}
+                    {match.commonFields.academicYear && <p style={{ margin: '2px 0' }}>✓ Academic Year</p>}
+                    {match.commonFields.studyGoal && <p style={{ margin: '2px 0' }}>✓ Study Goal</p>}
+                    {match.commonFields.studyFrequency && <p style={{ margin: '2px 0' }}>✓ Study Frequency</p>}
                   </div>
+                  <button
+                    className="btn"
+                    style={{ width: '100%', padding: '8px 12px', fontSize: '14px' }}
+                    onClick={() => handleAddMatch(match.username)}
+                  >
+                    + Add
+                  </button>
                 </div>
               </div>
             </div>

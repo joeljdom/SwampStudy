@@ -4,8 +4,10 @@ import Home from './pages/Home'
 import Calendar from './pages/Calendar'
 import Profile from './pages/Profile'
 import Matches from './pages/Matches'
+import Notifications from './pages/Notifications'
+import Friends from './pages/Friends'
 
-type Page = 'home' | 'calendar' | 'login' | 'profile' | 'matches'
+type Page = 'home' | 'calendar' | 'login' | 'profile' | 'matches' | 'notifications' | 'friends'
 
 export default function App() {
   const [user, setUser] = useState<string | null>(null)
@@ -38,5 +40,9 @@ export default function App() {
 
   if (page === 'matches') return <Matches username={user!} onBack={() => setPage('home')} />
 
-  return <Home username={user!} onLogout={handleLogout} onNavigate={(p: Exclude<Page, 'login'|'profile'|'matches'>) => setPage(p)} onEditProfile={() => setPage('profile')} onViewMatches={() => setPage('matches')} />
+  if (page === 'notifications') return <Notifications username={user!} onBack={() => setPage('home')} />
+
+  if (page === 'friends') return <Friends username={user!} onBack={() => setPage('home')} />
+
+  return <Home username={user!} onLogout={handleLogout} onNavigate={(p: Exclude<Page, 'login'|'profile'|'matches'|'notifications'|'friends'>) => setPage(p)} onEditProfile={() => setPage('profile')} onViewMatches={() => setPage('matches')} onViewNotifications={() => setPage('notifications')} onViewFriends={() => setPage('friends')} />
 }

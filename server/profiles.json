@@ -54,8 +54,7 @@
   },
   "fwqff": {
     "classes": [
-      "PHY2050",
-      "PHY2049"
+      "PHY2048"
     ],
     "studyPreference": "long",
     "academicYear": "freshman",
@@ -64,11 +63,20 @@
   },
   "fewfgegr": {
     "classes": [
-      "PHY2050"
+      "PHY2049"
     ],
     "studyPreference": "long",
     "academicYear": "freshman",
     "studyGoal": "exam",
     "studyFrequency": "once"
+  },
+  "ethan1": {
+    "classes": [
+      "PHY2048"
+    ],
+    "studyPreference": "frequent",
+    "academicYear": "sophomore",
+    "studyGoal": "review",
+    "studyFrequency": "before-exams"
   }
 }

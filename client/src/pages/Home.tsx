@@ -6,9 +6,11 @@ type Props = {
   onNavigate: (page: 'calendar' | 'home') => void
   onEditProfile: () => void
   onViewMatches: () => void
+  onViewNotifications: () => void
+  onViewFriends: () => void
 }
 
-export default function Home({ username, onLogout, onNavigate, onEditProfile, onViewMatches }: Props) {
+export default function Home({ username, onLogout, onNavigate, onEditProfile, onViewMatches, onViewNotifications, onViewFriends }: Props) {
   return (
     <div>
       <div className="banner">
@@ -27,6 +29,8 @@ export default function Home({ username, onLogout, onNavigate, onEditProfile, on
           <button className="btn" style={{ marginTop: 16, display: 'inline-block' }} onClick={() => onNavigate('calendar')}>📅 View Calendar</button>
           <button className="btn" style={{ marginTop: 16, marginLeft: 12, display: 'inline-block' }} onClick={onEditProfile}>✏️ Edit Profile</button>
           <button className="btn" style={{ marginTop: 16, marginLeft: 12, display: 'inline-block' }} onClick={onViewMatches}>🤝 Find Study Partners</button>
+          <button className="btn" style={{ marginTop: 16, marginLeft: 12, display: 'inline-block' }} onClick={onViewNotifications}>🔔 Friend Requests</button>
+          <button className="btn" style={{ marginTop: 16, marginLeft: 12, display: 'inline-block' }} onClick={onViewFriends}>👥 Study Friends</button>
         </div>
       </div>
     </div>

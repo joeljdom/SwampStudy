@@ -1,0 +1,44 @@
+{
+  "ethan435": {
+    "pending": [],
+    "friends": [
+      "fewfgegr",
+      "ethan1"
+    ]
+  },
+  "fewfgegr": {
+    "pending": [
+      "fwqff"
+    ],
+    "friends": [
+      "ethan435",
+      "fwqff"
+    ]
+  },
+  "fwqff": {
+    "pending": [
+      "ethan435"
+    ],
+    "friends": [
+      "fewfgegr"
+    ]
+  },
+  "trtreeer": {
+    "pending": [
+      "fwqff"
+    ],
+    "friends": []
+  },
+  "dwqdq": {
+    "pending": [
+      "fwqff"
+    ],
+    "friends": []
+  },
+  "ethan1": {
+    "pending": [],
+    "friends": [
+      "ethan435"
+    ]
+  }
+}

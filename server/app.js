@@ -148,3 +148,114 @@ app.get("/api/profiles", (req, res) => {
 });
 
 export { PROFILES_PATH };
+
+// Relationships data file
+const RELATIONSHIPS_PATH = "./relationships.json";
+if (!fs.existsSync(RELATIONSHIPS_PATH)) fs.writeFileSync(RELATIONSHIPS_PATH, "{}");
+
+function readRelationships() {
+  return JSON.parse(fs.readFileSync(RELATIONSHIPS_PATH, "utf-8"));
+}
+
+function writeRelationships(data) {
+  fs.writeFileSync(RELATIONSHIPS_PATH, JSON.stringify(data, null, 2));
+}
+
+// Get pending requests for a user
+app.get("/api/relationships/pending/:username", (req, res) => {
+  const username = req.params.username;
+  const relationships = readRelationships();
+  const userRelationships = relationships[username] || { pending: [], friends: [] };
+  res.json({ pending: userRelationships.pending || [] });
+});
+
+// Get friends for a user
+app.get("/api/relationships/friends/:username", (req, res) => {
+  const username = req.params.username;
+  const relationships = readRelationships();
+  const userRelationships = relationships[username] || { pending: [], friends: [] };
+  res.json({ friends: userRelationships.friends || [] });
+});
+
+// Send a friend request (add to pending)
+app.post("/api/relationships/request", (req, res) => {
+  const { from, to } = req.body;
+  if (!from || !to) {
+    return res.status(400).json({ error: "from and to usernames required" });
+  }
+  if (from === to) {
+    return res.status(400).json({ error: "cannot add yourself" });
+  }
+
+  const relationships = readRelationships();
+  
+  // Initialize if needed
+  if (!relationships[to]) relationships[to] = { pending: [], friends: [] };
+  
+  // Check if already pending or friends
+  if (relationships[to].pending && relationships[to].pending.includes(from)) {
+    return res.status(400).json({ error: "request already pending" });
+  }
+  if (relationships[to].friends && relationships[to].friends.includes(from)) {
+    return res.status(400).json({ error: "already friends" });
+  }
+  
+  // Add to pending
+  if (!relationships[to].pending) relationships[to].pending = [];
+  relationships[to].pending.push(from);
+  
+  writeRelationships(relationships);
+  res.json({ ok: true });
+});
+
+// Accept a friend request
+app.post("/api/relationships/accept", (req, res) => {
+  const { from, to } = req.body;
+  if (!from || !to) {
+    return res.status(400).json({ error: "from and to usernames required" });
+  }
+
+  const relationships = readRelationships();
+  
+  // Initialize if needed
+  if (!relationships[to]) relationships[to] = { pending: [], friends: [] };
+  if (!relationships[from]) relationships[from] = { pending: [], friends: [] };
+  
+  // Remove from pending
+  if (relationships[to].pending) {
+    relationships[to].pending = relationships[to].pending.filter(u => u !== from);
+  }
+  
+  // Add to friends (both directions)
+  if (!relationships[to].friends) relationships[to].friends = [];
+  if (!relationships[from].friends) relationships[from].friends = [];
+  
+  if (!relationships[to].friends.includes(from)) {
+    relationships[to].friends.push(from);
+  }
+  if (!relationships[from].friends.includes(to)) {
+    relationships[from].friends.push(to);
+  }
+  
+  writeRelationships(relationships);
+  res.json({ ok: true });
+});
+
+// Deny a friend request
+app.post("/api/relationships/deny", (req, res) => {
+  const { from, to } = req.body;
+  if (!from || !to) {
+    return res.status(400).json({ error: "from and to usernames required" });
+  }
+
+  const relationships = readRelationships();
+  
+  if (relationships[to] && relationships[to].pending) {
+    relationships[to].pending = relationships[to].pending.filter(u => u !== from);
+  }
+  
+  writeRelationships(relationships);
+  res.json({ ok: true });
+});
+
+export { RELATIONSHIPS_PATH };
