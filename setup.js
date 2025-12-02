@@ -35,7 +35,7 @@ if (process.platform !== 'win32') {
         files.forEach(file => {
           const filePath = path.join(binDir, file);
           try {
-            fs.chmodSync(filePath, '755');
+            fs.chmodSync(filePath, 0o755);
           } catch (err) {
             // Ignore errors (file might not exist or already have correct permissions)
           }
