@@ -6,8 +6,9 @@ import Profile from './pages/Profile'
 import Matches from './pages/Matches'
 import Notifications from './pages/Notifications'
 import Friends from './pages/Friends'
+import DMs from './pages/DMs'
 
-type Page = 'home' | 'calendar' | 'login' | 'profile' | 'matches' | 'notifications' | 'friends'
+type Page = 'home' | 'calendar' | 'login' | 'profile' | 'matches' | 'notifications' | 'friends' | 'dms'
 
 export default function App() {
   const [user, setUser] = useState<string | null>(null)
@@ -46,5 +47,7 @@ export default function App() {
 
   if (page === 'friends') return <Friends username={user!} onBack={goHome} goHome={goHome} />
 
-  return <Home username={user!} onLogout={handleLogout} onNavigate={(p: Exclude<Page, 'login'|'profile'|'matches'|'notifications'|'friends'>) => setPage(p)} onEditProfile={() => setPage('profile')} onViewMatches={() => setPage('matches')} onViewNotifications={() => setPage('notifications')} onViewFriends={() => setPage('friends')} />
+  if (page === 'dms') return <DMs username={user!} onBack={goHome} goHome={goHome} />
+
+  return <Home username={user!} onLogout={handleLogout} onNavigate={(p: Exclude<Page, 'login'|'profile'|'matches'|'notifications'|'friends'|'dms'>) => setPage(p)} onEditProfile={() => setPage('profile')} onViewMatches={() => setPage('matches')} onViewNotifications={() => setPage('notifications')} onViewFriends={() => setPage('friends')} onViewDMs={() => setPage('dms')} />
 }

@@ -78,5 +78,15 @@
     "academicYear": "sophomore",
     "studyGoal": "review",
     "studyFrequency": "before-exams"
+  },
+  "l": {
+    "classes": [
+      "PHY2050",
+      "PHY2048"
+    ],
+    "studyPreference": "long",
+    "academicYear": "freshman",
+    "studyGoal": "exam",
+    "studyFrequency": "once"
   }
 }

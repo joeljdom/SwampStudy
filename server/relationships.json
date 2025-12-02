@@ -3,7 +3,8 @@
     "pending": [],
     "friends": [
       "fewfgegr",
-      "ethan1"
+      "ethan1",
+      "l"
     ]
   },
   "fewfgegr": {
@@ -17,7 +18,8 @@
   },
   "fwqff": {
     "pending": [
-      "ethan435"
+      "ethan435",
+      "l"
     ],
     "friends": [
       "fewfgegr"
@@ -36,6 +38,12 @@
     "friends": []
   },
   "ethan1": {
+    "pending": [],
+    "friends": [
+      "ethan435"
+    ]
+  },
+  "l": {
     "pending": [],
     "friends": [
       "ethan435"

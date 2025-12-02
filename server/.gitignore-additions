@@ -1,0 +1,18 @@
+# Add these lines to your .gitignore if not already present
+
+# Environment variables
+server/.env
+server/.env.local
+server/.env.*.local
+
+# Node modules
+server/node_modules/
+
+# Optional: Keep JSON files for reference but don't commit them after migration
+# server/*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

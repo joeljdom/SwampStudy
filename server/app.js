@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
-import { User, Profile, Availability, Relationship } from "./database.js";
+import { User, Profile, Availability, Relationship, Message } from "./database.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -308,6 +308,107 @@ app.post("/api/relationships/deny", async (req, res) => {
     res.json({ ok: true });
   } catch (error) {
     console.error("Deny request error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ============ DIRECT MESSAGES ROUTES ============
+
+// Send a message
+app.post("/api/messages", async (req, res) => {
+  try {
+    const { sender, receiver, content } = req.body;
+
+    if (!sender || !receiver || !content) {
+      return res.status(400).json({ error: "sender, receiver, and content required" });
+    }
+
+    if (sender === receiver) {
+      return res.status(400).json({ error: "cannot message yourself" });
+    }
+
+    const message = new Message({
+      sender,
+      receiver,
+      content,
+      timestamp: new Date(),
+      read: false
+    });
+
+    await message.save();
+    res.json({ ok: true, message });
+  } catch (error) {
+    console.error("Send message error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Get messages (inbox + sent) for a user with a specific conversation partner
+app.get("/api/messages/:username/:otherUsername", async (req, res) => {
+  try {
+    const { username, otherUsername } = req.params;
+
+    // Get all messages between these two users (both directions)
+    const messages = await Message.find({
+      $or: [
+        { sender: username, receiver: otherUsername },
+        { sender: otherUsername, receiver: username }
+      ]
+    }).sort({ timestamp: 1 });
+
+    // Mark received messages as read
+    await Message.updateMany(
+      { sender: otherUsername, receiver: username, read: false },
+      { read: true }
+    );
+
+    res.json(messages);
+  } catch (error) {
+    console.error("Get messages error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Get list of conversations (unique people user has messaged with)
+app.get("/api/conversations/:username", async (req, res) => {
+  try {
+    const username = req.params.username;
+
+    // Get all messages where user is sender or receiver
+    const messages = await Message.find({
+      $or: [
+        { sender: username },
+        { receiver: username }
+      ]
+    }).sort({ timestamp: -1 });
+
+    // Extract unique conversation partners
+    const conversationMap = new Map();
+    
+    for (const msg of messages) {
+      const otherUser = msg.sender === username ? msg.receiver : msg.sender;
+      
+      if (!conversationMap.has(otherUser)) {
+        conversationMap.set(otherUser, {
+          otherUsername: otherUser,
+          lastMessage: msg.content,
+          lastMessageTime: msg.timestamp,
+          unreadCount: msg.sender !== username && !msg.read ? 1 : 0
+        });
+      } else {
+        const conv = conversationMap.get(otherUser);
+        if (msg.sender !== username && !msg.read) {
+          conv.unreadCount += 1;
+        }
+      }
+    }
+
+    const conversations = Array.from(conversationMap.values())
+      .sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
+
+    res.json(conversations);
+  } catch (error) {
+    console.error("Get conversations error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

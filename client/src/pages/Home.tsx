@@ -8,9 +8,10 @@ type Props = {
   onViewMatches: () => void
   onViewNotifications: () => void
   onViewFriends: () => void
+  onViewDMs: () => void
 }
 
-export default function Home({ username, onLogout, onNavigate, onEditProfile, onViewMatches, onViewNotifications, onViewFriends }: Props) {
+export default function Home({ username, onLogout, onNavigate, onEditProfile, onViewMatches, onViewNotifications, onViewFriends, onViewDMs }: Props) {
   return (
     <div>
       <div className="banner">
@@ -31,6 +32,7 @@ export default function Home({ username, onLogout, onNavigate, onEditProfile, on
           <button className="btn" style={{ marginTop: 16, marginLeft: 12, display: 'inline-block' }} onClick={onViewMatches}>🤝 Find Study Partners</button>
           <button className="btn" style={{ marginTop: 16, marginLeft: 12, display: 'inline-block' }} onClick={onViewNotifications}>🔔 Friend Requests</button>
           <button className="btn" style={{ marginTop: 16, marginLeft: 12, display: 'inline-block' }} onClick={onViewFriends}>👥 Study Friends</button>
+          <button className="btn" style={{ marginTop: 16, marginLeft: 12, display: 'inline-block' }} onClick={onViewDMs}>💬 Messages</button>
         </div>
       </div>
     </div>
