@@ -37,6 +37,7 @@ app.post("/api/signup", async (req, res) => {
   try {
     const username = (req.body?.username || "").trim();
     const password = (req.body?.password || "").trim();
+    const isAdmin = req.body?.isAdmin === true; // Admin flag from request
 
     if (!username || !password)
       return res.status(400).json({ error: "username and password required" });
@@ -46,9 +47,10 @@ app.post("/api/signup", async (req, res) => {
       return res.status(409).json({ error: "username already exists" });
     }
 
-    const user = new User({ username, password });
+    const hashedPassword = hashPassword(password);
+    const user = new User({ username, password: hashedPassword, role: isAdmin ? "admin" : "user" });
     await user.save();
-    res.json({ ok: true, username });
+    res.json({ ok: true, username, role: user.role });
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -64,10 +66,11 @@ app.post("/api/login", async (req, res) => {
     if (!username || !password)
       return res.status(400).json({ error: "username and password required" });
 
-    const user = await User.findOne({ username, password });
+    const hashedPassword = hashPassword(password);
+    const user = await User.findOne({ username, password: hashedPassword });
     if (!user) return res.status(401).json({ error: "invalid credentials" });
 
-    res.json({ ok: true, username });
+    res.json({ ok: true, username, role: user.role || "user" });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -342,8 +345,8 @@ app.post("/api/messages", async (req, res) => {
       read: false
     });
 
-    await message.save();
-    res.json({ ok: true, message });
+    const savedMessage = await message.save();
+    res.json({ ok: true, message: savedMessage.toJSON ? savedMessage.toJSON() : savedMessage });
   } catch (error) {
     console.error("Send message error:", error.message || error);
     console.error("Stack:", error.stack);
@@ -362,7 +365,7 @@ app.get("/api/messages/:username/:otherUsername", async (req, res) => {
         { sender: username, receiver: otherUsername },
         { sender: otherUsername, receiver: username }
       ]
-    }).sort({ timestamp: 1 });
+    }).sort({ timestamp: 1 }).lean();
 
     // Mark received messages as read
     await Message.updateMany(
@@ -370,7 +373,7 @@ app.get("/api/messages/:username/:otherUsername", async (req, res) => {
       { read: true }
     );
 
-    res.json(messages);
+    res.json(messages || []);
   } catch (error) {
     console.error("Get messages error:", error.message || error);
     console.error("Stack:", error.stack);
@@ -389,7 +392,7 @@ app.get("/api/conversations/:username", async (req, res) => {
         { sender: username },
         { receiver: username }
       ]
-    }).sort({ timestamp: -1 });
+    }).sort({ timestamp: -1 }).lean();
 
     // Extract unique conversation partners
     const conversationMap = new Map();
@@ -415,10 +418,170 @@ app.get("/api/conversations/:username", async (req, res) => {
     const conversations = Array.from(conversationMap.values())
       .sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
 
-    res.json(conversations);
+    res.json(conversations || []);
   } catch (error) {
     console.error("Get conversations error:", error.message || error);
     console.error("Stack:", error.stack);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ============ ADMIN ROUTES ============
+
+// Get all users with their profiles for admin dashboard
+app.get("/api/admin/users/:adminUsername", async (req, res) => {
+  try {
+    const { adminUsername } = req.params;
+    
+    // Verify user is admin
+    const admin = await User.findOne({ username: adminUsername });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ error: "Unauthorized: admin access required" });
+    }
+
+    // Get all users except the admin
+    const users = await User.find({ username: { $ne: adminUsername } }).select("username role").lean();
+    
+    // Fetch profiles for each user
+    const usersWithProfiles = await Promise.all(
+      users.map(async (user) => {
+        const profile = await Profile.findOne({ username: user.username }).lean();
+        return { ...user, profile };
+      })
+    );
+
+    res.json(usersWithProfiles);
+  } catch (error) {
+    console.error("Get admin users error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Search users by username or class for admin
+app.get("/api/admin/search/:adminUsername", async (req, res) => {
+  try {
+    const { adminUsername } = req.params;
+    const query = (req.query.q || "").trim();
+
+    if (!query) {
+      return res.status(400).json({ error: "search query required" });
+    }
+
+    // Verify user is admin
+    const admin = await User.findOne({ username: adminUsername });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ error: "Unauthorized: admin access required" });
+    }
+
+    // Search by username or in profile classes
+    const users = await User.find({
+      username: { $regex: query, $options: "i", $ne: adminUsername }
+    }).select("username role").lean();
+
+    const usersWithProfiles = await Promise.all(
+      users.map(async (user) => {
+        const profile = await Profile.findOne({ username: user.username }).lean();
+        return { ...user, profile };
+      })
+    );
+
+    // Also search by class name in profiles
+    const profilesByClass = await Profile.find({
+      classes: { $regex: query, $options: "i" }
+    }).lean();
+
+    const classSearchUsers = await Promise.all(
+      profilesByClass.map(async (profile) => {
+        const user = await User.findOne({ username: profile.username }).select("username role").lean();
+        return user ? { ...user, profile } : null;
+      })
+    ).then(u => u.filter(Boolean));
+
+    // Merge and deduplicate
+    const merged = new Map();
+    [...usersWithProfiles, ...classSearchUsers].forEach(u => {
+      merged.set(u.username, u);
+    });
+
+    res.json(Array.from(merged.values()));
+  } catch (error) {
+    console.error("Search users error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Get user details with friends and calendar for admin
+app.get("/api/admin/user/:adminUsername/:targetUsername", async (req, res) => {
+  try {
+    const { adminUsername, targetUsername } = req.params;
+
+    // Verify user is admin
+    const admin = await User.findOne({ username: adminUsername });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ error: "Unauthorized: admin access required" });
+    }
+
+    // Get user profile
+    const profile = await Profile.findOne({ username: targetUsername }).lean();
+    
+    // Get user's friends
+    const relationship = await Relationship.findOne({ username: targetUsername }).lean();
+    const friends = relationship?.friends || [];
+
+    // Get user's availability/calendar
+    const availability = await Availability.findOne({ username: targetUsername }).lean();
+    const calendar = availability?.dates ? Object.fromEntries(availability.dates) : {};
+
+    res.json({
+      username: targetUsername,
+      profile,
+      friends,
+      calendar
+    });
+  } catch (error) {
+    console.error("Get admin user details error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Edit user profile (admin only)
+app.post("/api/admin/user/:adminUsername/:targetUsername", async (req, res) => {
+  try {
+    const { adminUsername, targetUsername } = req.params;
+    const { classes, studyPreference, academicYear, studyGoal, studyFrequency } = req.body;
+
+    // Verify user is admin
+    const admin = await User.findOne({ username: adminUsername });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ error: "Unauthorized: admin access required" });
+    }
+
+    if (!classes || !Array.isArray(classes) || !studyPreference) {
+      return res.status(400).json({ error: "classes (array) and studyPreference required" });
+    }
+
+    let profile = await Profile.findOne({ username: targetUsername });
+    if (!profile) {
+      profile = new Profile({
+        username: targetUsername,
+        classes,
+        studyPreference,
+        academicYear: academicYear || "unknown",
+        studyGoal: studyGoal || [],
+        studyFrequency: studyFrequency || "unknown"
+      });
+    } else {
+      profile.classes = classes;
+      profile.studyPreference = studyPreference;
+      profile.academicYear = academicYear || profile.academicYear;
+      profile.studyGoal = studyGoal || profile.studyGoal;
+      profile.studyFrequency = studyFrequency || profile.studyFrequency;
+    }
+
+    await profile.save();
+    res.json({ ok: true, profile });
+  } catch (error) {
+    console.error("Edit profile error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

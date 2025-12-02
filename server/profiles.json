@@ -100,5 +100,29 @@
     "academicYear": "freshman",
     "studyGoal": "exam",
     "studyFrequency": "once"
+  },
+  "hatcher1": {
+    "classes": [
+      "PHY2048",
+      "PHY2050"
+    ],
+    "studyPreference": "long",
+    "academicYear": "freshman",
+    "studyGoal": [
+      "homework"
+    ],
+    "studyFrequency": "once"
+  },
+  "hatcher2": {
+    "classes": [
+      "PHY2048",
+      "PHY2050"
+    ],
+    "studyPreference": "long",
+    "academicYear": "freshman",
+    "studyGoal": [
+      "homework"
+    ],
+    "studyFrequency": "once"
   }
 }

@@ -8,9 +8,9 @@
   },
   "type": "module",
   "dependencies": {
+    "dotenv": "^16.6.1",
     "express": "^5.1.0",
-    "mongoose": "^8.0.0",
-    "dotenv": "^16.0.0"
+    "mongoose": "^8.20.1"
   },
   "devDependencies": {
     "supertest": "^7.1.4"
