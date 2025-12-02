@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 type Props = {
   username: string
   onBack: () => void
+  goHome: () => void
 }
 
 function getEasternNow() {
@@ -10,7 +11,7 @@ function getEasternNow() {
   return new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }))
 }
 
-export default function Calendar({ username, onBack }: Props) {
+export default function Calendar({ username, onBack, goHome }: Props) {
   const [current, setCurrent] = useState<Date>(() => getEasternNow())
   const [availability, setAvailability] = useState<Record<string, string>>({})
   const [modalDate, setModalDate] = useState<string | null>(null)
@@ -34,7 +35,7 @@ export default function Calendar({ username, onBack }: Props) {
   const month = current.getMonth()
 
   const monthTitle = useMemo(() => {
-    return current.toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'America/New_York' })
+    return current.toLocaleString('en-US', { month: 'long', year: 'numeric' })
   }, [current])
 
   function changeMonth(delta: number) {
@@ -75,7 +76,8 @@ export default function Calendar({ username, onBack }: Props) {
       })
       if (!res.ok) throw new Error('Failed to save')
       const data = await res.json()
-      setAvailability(data.availability)
+      setAvailability({ ...data.availability })
+      closeModal()
     } catch (err) {
       console.error(err)
       alert('Failed to save availability')
@@ -100,7 +102,14 @@ export default function Calendar({ username, onBack }: Props) {
   return (
     <div>
       <div className="banner">
-        <img src="/gatorbanner.png" alt="Swamp Study Header" />
+        <img src="/gatorbanner.png" alt="Swamp Study Header" onClick={goHome} />
+        <button className="banner-home-btn" onClick={goHome}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          Home
+        </button>
       </div>
 
       <div className="container">
@@ -142,7 +151,7 @@ export default function Calendar({ username, onBack }: Props) {
                       const d = new Date(year, month, day)
                       const dateStr = formatDate(d)
                       const status = availability[dateStr]
-                      const cls = ['date-cell', status === 'available' ? 'available' : '', status === 'unavailable' ? 'unavailable' : ''].join(' ')
+                      const cls = ['date-cell', status === 'available' ? 'available' : null, status === 'unavailable' ? 'unavailable' : null].filter(Boolean).join(' ')
                       return (
                         <td key={j}>
                           <button className={cls} onClick={() => openModalFor(day)}>{day}</button>
@@ -158,13 +167,19 @@ export default function Calendar({ username, onBack }: Props) {
       </div>
 
       {modalDate && (
-        <div className="modal show">
+        <div className="modal show" onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal()
+        }}>
           <div className="modal-content">
-            <h3>{new Date(modalDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</h3>
+            <h3>{new Date(modalDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</h3>
             <p>Select availability status for this date:</p>
             <div className="modal-buttons">
-              <button className="modal-btn available" onClick={() => { saveAvailability(modalDate, 'available'); closeModal() }}>Available</button>
-              <button className="modal-btn unavailable" onClick={() => { saveAvailability(modalDate, 'unavailable'); closeModal() }}>Unavailable</button>
+              <button className="modal-btn available" onClick={() => saveAvailability(modalDate, 'available')}>
+                ✓ Available
+              </button>
+              <button className="modal-btn unavailable" onClick={() => saveAvailability(modalDate, 'unavailable')}>
+                ✗ Unavailable
+              </button>
               <button className="modal-btn cancel" onClick={closeModal}>Cancel</button>
             </div>
           </div>

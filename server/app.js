@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 import { User, Profile, Availability, Relationship } from "./database.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,6 +26,11 @@ app.use((req, res, next) => {
 });
 
 // ============ USER ROUTES ============
+
+// Hash password using SHA-256
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
 
 // signup route
 app.post("/api/signup", async (req, res) => {
