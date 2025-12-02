@@ -14,7 +14,7 @@ export default function Home({ username, onLogout, onNavigate, onEditProfile, on
   return (
     <div>
       <div className="banner">
-        <img src="/gatorbanner.png" alt="Swamp Study Header" />
+        <img src="/gatorbanner.png" alt="Swamp Study Header" onClick={() => {}} style={{ cursor: 'default' }} />
       </div>
 
       <div className="container">

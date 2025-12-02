@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 type Props = {
   username: string
   onDone: () => void
+  goHome: () => void
 }
 
 
@@ -39,7 +40,7 @@ const STUDY_FREQUENCIES = [
   { value: 'other', label: 'Other' }
 ]
 
-export default function Profile({ username, onDone }: Props) {
+export default function Profile({ username, onDone, goHome }: Props) {
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])
   const [studyPref, setStudyPref] = useState<string>(STUDY_PREFERENCES[0].value)
   const [academicYear, setAcademicYear] = useState<string>(ACADEMIC_YEARS[0].value)
@@ -141,7 +142,16 @@ export default function Profile({ username, onDone }: Props) {
   if (loadingProfile) {
     return (
       <div className="container">
-        <div className="banner"><img src="/gatorbanner.png" alt="Swamp Study" /></div>
+        <div className="banner">
+          <img src="/gatorbanner.png" alt="Swamp Study" onClick={goHome} />
+          <button className="banner-home-btn" onClick={goHome}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Home
+          </button>
+        </div>
         <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
           <p>Loading profile...</p>
         </div>

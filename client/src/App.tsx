@@ -32,17 +32,19 @@ export default function App() {
     setPage('login')
   }
 
+  const goHome = () => setPage('home')
+
   if (!user && page === 'login') return <Login onAuth={handleLogin} />
 
-  if (page === 'calendar') return <Calendar username={user!} onBack={() => setPage('home')} />
+  if (page === 'calendar') return <Calendar username={user!} onBack={goHome} goHome={goHome} />
 
-  if (page === 'profile') return <Profile username={user!} onDone={() => setPage('home')} />
+  if (page === 'profile') return <Profile username={user!} onDone={goHome} goHome={goHome} />
 
-  if (page === 'matches') return <Matches username={user!} onBack={() => setPage('home')} />
+  if (page === 'matches') return <Matches username={user!} onBack={goHome} goHome={goHome} />
 
-  if (page === 'notifications') return <Notifications username={user!} onBack={() => setPage('home')} />
+  if (page === 'notifications') return <Notifications username={user!} onBack={goHome} goHome={goHome} />
 
-  if (page === 'friends') return <Friends username={user!} onBack={() => setPage('home')} />
+  if (page === 'friends') return <Friends username={user!} onBack={goHome} goHome={goHome} />
 
   return <Home username={user!} onLogout={handleLogout} onNavigate={(p: Exclude<Page, 'login'|'profile'|'matches'|'notifications'|'friends'>) => setPage(p)} onEditProfile={() => setPage('profile')} onViewMatches={() => setPage('matches')} onViewNotifications={() => setPage('notifications')} onViewFriends={() => setPage('friends')} />
 }

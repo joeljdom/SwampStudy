@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 type Props = {
   username: string
   onBack: () => void
+  goHome: () => void
 }
 
 type ProfileData = {
@@ -18,7 +19,7 @@ type Friend = {
   profile: ProfileData | null
 }
 
-export default function Friends({ username, onBack }: Props) {
+export default function Friends({ username, onBack, goHome }: Props) {
   const [friendsList, setFriendsList] = useState<Friend[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -57,7 +58,16 @@ export default function Friends({ username, onBack }: Props) {
 
   return (
     <div className="container">
-      <div className="banner"><img src="/gatorbanner.png" alt="Swamp Study" /></div>
+      <div className="banner">
+        <img src="/gatorbanner.png" alt="Swamp Study" onClick={goHome} />
+        <button className="banner-home-btn" onClick={goHome}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          Home
+        </button>
+      </div>
       <h2>Study Friends</h2>
       <button className="btn" onClick={onBack} style={{ marginBottom: 16 }}>← Back</button>
 
