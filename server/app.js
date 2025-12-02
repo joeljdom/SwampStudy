@@ -132,7 +132,13 @@ app.post("/api/profile/:username", (req, res) => {
     return res.status(400).json({ error: "username, classes (array), and studyPreference required" });
   }
   if (!academicYear) academicYear = "unknown";
-  if (!studyGoal) studyGoal = "unknown";
+  // Handle studyGoal as array (for multiple selections) or single value (backward compatibility)
+  if (!studyGoal) {
+    studyGoal = [];
+  } else if (!Array.isArray(studyGoal)) {
+    // Convert single value to array for backward compatibility
+    studyGoal = [studyGoal];
+  }
   if (!studyFrequency) studyFrequency = "unknown";
   const profiles = readProfiles();
   profiles[username] = { classes, studyPreference, academicYear, studyGoal, studyFrequency };
