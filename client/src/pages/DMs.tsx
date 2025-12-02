@@ -4,6 +4,7 @@ type Props = {
   username: string
   onBack: () => void
   goHome: () => void
+  initialFriend?: string
 }
 
 type Message = {
@@ -22,9 +23,9 @@ type Conversation = {
   unreadCount: number
 }
 
-export default function DMs({ username, onBack, goHome }: Props) {
+export default function DMs({ username, onBack, goHome, initialFriend }: Props) {
   const [conversations, setConversations] = useState<Conversation[]>([])
-  const [selectedUser, setSelectedUser] = useState<string | null>(null)
+  const [selectedUser, setSelectedUser] = useState<string | null>(initialFriend || null)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)

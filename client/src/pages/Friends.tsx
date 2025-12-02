@@ -4,6 +4,7 @@ type Props = {
   username: string
   onBack: () => void
   goHome: () => void
+  onMessageClick?: (friendUsername: string) => void
 }
 
 type ProfileData = {
@@ -19,7 +20,7 @@ type Friend = {
   profile: ProfileData | null
 }
 
-export default function Friends({ username, onBack, goHome }: Props) {
+export default function Friends({ username, onBack, goHome, onMessageClick }: Props) {
   const [friendsList, setFriendsList] = useState<Friend[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -87,7 +88,18 @@ export default function Friends({ username, onBack, goHome }: Props) {
           </p>
           {friendsList.map((friend) => (
             <div key={friend.username} className="card" style={{ marginBottom: 16 }}>
-              <h3 style={{ margin: '0 0 12px 0' }}>{friend.username}</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: '0 0 12px 0' }}>{friend.username}</h3>
+                {onMessageClick && (
+                  <button
+                    className="btn"
+                    onClick={() => onMessageClick(friend.username)}
+                    style={{ padding: '6px 12px', fontSize: '14px' }}
+                  >
+                    💬 Message
+                  </button>
+                )}
+              </div>
               
               {friend.profile ? (
                 <>

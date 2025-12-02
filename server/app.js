@@ -144,7 +144,13 @@ app.post("/api/profile/:username", async (req, res) => {
     }
 
     if (!academicYear) academicYear = "unknown";
-    if (!studyGoal) studyGoal = "unknown";
+    if (!studyGoal) studyGoal = [];
+    if (typeof studyGoal === 'string') {
+      studyGoal = [studyGoal];
+    }
+    if (!Array.isArray(studyGoal)) {
+      studyGoal = [];
+    }
     if (!studyFrequency) studyFrequency = "unknown";
 
     let profile = await Profile.findOne({ username });
@@ -162,7 +168,8 @@ app.post("/api/profile/:username", async (req, res) => {
     console.log('Writing profile:', profile);
     res.json({ ok: true, profile });
   } catch (error) {
-    console.error("Save profile error:", error);
+    console.error("Save profile error:", error.message || error);
+    console.error("Stack:", error.stack);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -177,7 +184,7 @@ app.get("/api/profiles", async (req, res) => {
         classes: profile.classes,
         studyPreference: profile.studyPreference,
         academicYear: profile.academicYear,
-        studyGoal: profile.studyGoal,
+        studyGoal: profile.studyGoal || [],
         studyFrequency: profile.studyFrequency
       };
     });
@@ -338,7 +345,8 @@ app.post("/api/messages", async (req, res) => {
     await message.save();
     res.json({ ok: true, message });
   } catch (error) {
-    console.error("Send message error:", error);
+    console.error("Send message error:", error.message || error);
+    console.error("Stack:", error.stack);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -364,7 +372,8 @@ app.get("/api/messages/:username/:otherUsername", async (req, res) => {
 
     res.json(messages);
   } catch (error) {
-    console.error("Get messages error:", error);
+    console.error("Get messages error:", error.message || error);
+    console.error("Stack:", error.stack);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -408,7 +417,8 @@ app.get("/api/conversations/:username", async (req, res) => {
 
     res.json(conversations);
   } catch (error) {
-    console.error("Get conversations error:", error);
+    console.error("Get conversations error:", error.message || error);
+    console.error("Stack:", error.stack);
     res.status(500).json({ error: "Internal server error" });
   }
 });

@@ -30,7 +30,7 @@ const profileSchema = new mongoose.Schema({
   classes: { type: [String], required: true },
   studyPreference: { type: String, required: true },
   academicYear: { type: String, default: "unknown" },
-  studyGoal: { type: String, default: "unknown" },
+  studyGoal: { type: [String], default: [] },
   studyFrequency: { type: String, default: "unknown" }
 });
 
