@@ -1,6 +1,7 @@
 // app.js
 import express from "express";
 import fs from "fs";
+import crypto from "crypto";
 
 const app = express();
 app.use(express.json());
@@ -24,6 +25,11 @@ function writeUsers(arr) {
   fs.writeFileSync(USERS_PATH, JSON.stringify(arr, null, 2));
 }
 
+// Hash password using SHA-256
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
 // signup route
 app.post("/api/signup", (req, res) => {
   const username = (req.body?.username || "").trim();
@@ -37,7 +43,9 @@ app.post("/api/signup", (req, res) => {
     return res.status(409).json({ error: "username already exists" });
   }
 
-  users.push({ username, password });
+  // Hash the password before storing
+  const hashedPassword = hashPassword(password);
+  users.push({ username, password: hashedPassword });
   writeUsers(users);
   res.json({ ok: true, username });
 });
@@ -51,8 +59,22 @@ app.post("/api/login", (req, res) => {
     return res.status(400).json({ error: "username and password required" });
 
   const users = readUsers();
-  const match = users.find(u => u.username === username && u.password === password);
+  // Hash the input password and compare with stored hash
+  const hashedPassword = hashPassword(password);
+  const match = users.find(u => {
+    // Support both hashed (new) and plain text (legacy) passwords for backward compatibility
+    return u.username === username && (
+      u.password === hashedPassword || 
+      u.password === password // fallback for legacy plain text passwords
+    );
+  });
   if (!match) return res.status(401).json({ error: "invalid credentials" });
+
+  // If user has plain text password, upgrade it to hashed
+  if (match.password === password) {
+    match.password = hashedPassword;
+    writeUsers(users);
+  }
 
   res.json({ ok: true, username });
 });
