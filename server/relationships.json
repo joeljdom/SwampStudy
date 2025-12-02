@@ -1,6 +1,8 @@
 {
   "ethan435": {
-    "pending": [],
+    "pending": [
+      "123"
+    ],
     "friends": [
       "fewfgegr",
       "ethan1"
@@ -17,7 +19,8 @@
   },
   "fwqff": {
     "pending": [
-      "ethan435"
+      "ethan435",
+      "123"
     ],
     "friends": [
       "fewfgegr"
