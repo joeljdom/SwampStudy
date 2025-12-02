@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { CLASS_OPTIONS, STUDY_PREFERENCES, ACADEMIC_YEARS, STUDY_GOALS, STUDY_FREQUENCIES } from '../lib/profileOptions'
 
 type Props = {
   username: string
@@ -7,38 +8,7 @@ type Props = {
 }
 
 
-const CLASS_OPTIONS = [
-  'PHY2049',
-  'PHY2048',
-  'PHY2050',
-  'Other'
-]
-
-const STUDY_PREFERENCES = [
-  { value: 'long', label: 'Long uninterrupted blocks' },
-  { value: 'frequent', label: 'Frequent breaks' }
-]
-
-const ACADEMIC_YEARS = [
-  { value: 'freshman', label: 'Freshman' },
-  { value: 'sophomore', label: 'Sophomore' },
-  { value: 'junior', label: 'Junior' },
-  { value: 'senior', label: 'Senior' },
-  { value: 'graduate', label: 'Graduate' }
-]
-
-const STUDY_GOALS = [
-  { value: 'exam', label: 'Studying for upcoming exam' },
-  { value: 'homework', label: 'Working on homework' },
-  { value: 'review', label: 'General review' }
-]
-
-const STUDY_FREQUENCIES = [
-  { value: 'once', label: 'Once per week' },
-  { value: 'before-exams', label: 'Only before exams' },
-  { value: 'daily', label: 'Daily' },
-  { value: 'other', label: 'Other' }
-]
+// Option lists are imported from shared `profileOptions` for consistency with admin UI
 
 export default function Profile({ username, onDone, goHome }: Props) {
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])

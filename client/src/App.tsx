@@ -28,7 +28,8 @@ export default function App() {
     const r = localStorage.getItem('swamp_role') || 'user'
     if (u) {
       setUser({ username: u, role: r as 'user' | 'admin' })
-      setPage('home')
+      // If this stored user is an admin, default to the admin dashboard after reload.
+      setPage(r === 'admin' ? 'admin-dashboard' : 'home')
     } else {
       setPage('login')
     }

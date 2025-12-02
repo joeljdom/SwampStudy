@@ -66,11 +66,30 @@ app.post("/api/login", async (req, res) => {
     if (!username || !password)
       return res.status(400).json({ error: "username and password required" });
 
-    const hashedPassword = hashPassword(password);
-    const user = await User.findOne({ username, password: hashedPassword });
+    // Find user by username first (to handle existing records that may store plaintext)
+    const user = await User.findOne({ username });
     if (!user) return res.status(401).json({ error: "invalid credentials" });
 
-    res.json({ ok: true, username, role: user.role || "user" });
+    const hashedPassword = hashPassword(password);
+
+    // If stored password matches hashed password, good. If stored password is plaintext (legacy),
+    // allow login and migrate to hashed password on first successful login.
+    if (user.password === hashedPassword) {
+      return res.json({ ok: true, username, role: user.role || "user" });
+    }
+
+    if (user.password === password) {
+      // Legacy plaintext password detected — re-hash and save for security
+      try {
+        user.password = hashedPassword;
+        await user.save();
+      } catch (e) {
+        console.error('Failed to migrate plaintext password for user', username, e);
+      }
+      return res.json({ ok: true, username, role: user.role || "user" });
+    }
+
+    return res.status(401).json({ error: "invalid credentials" });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Internal server error" });

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { CLASS_OPTIONS, STUDY_PREFERENCES, ACADEMIC_YEARS, STUDY_GOALS, STUDY_FREQUENCIES } from '../lib/profileOptions'
 
 type Props = {
   adminUsername: string
@@ -41,7 +42,13 @@ export default function AdminUserDetail({ adminUsername, targetUsername, onBack 
       if (!res.ok) throw new Error('Failed to load user details')
       const data = await res.json()
       setDetails(data)
-      setEditedProfile(data.profile)
+      setEditedProfile({
+        classes: Array.isArray(data.profile?.classes) ? data.profile.classes : [],
+        studyPreference: data.profile?.studyPreference || STUDY_PREFERENCES[0].value,
+        academicYear: data.profile?.academicYear || ACADEMIC_YEARS[0].value,
+        studyGoal: Array.isArray(data.profile?.studyGoal) ? data.profile.studyGoal : (data.profile?.studyGoal ? [data.profile.studyGoal] : []),
+        studyFrequency: data.profile?.studyFrequency || STUDY_FREQUENCIES[0].value
+      })
     } catch (err: any) {
       setError(err.message || 'Network error')
     } finally {
@@ -110,61 +117,76 @@ export default function AdminUserDetail({ adminUsername, targetUsername, onBack 
         ) : (
           <>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Classes (comma-separated)</label>
-              <input
-                type="text"
-                value={editedProfile?.classes?.join(', ') || ''}
-                onChange={(e) => setEditedProfile({
-                  ...editedProfile,
-                  classes: e.target.value.split(',').map(c => c.trim()).filter(c => c)
-                })}
-                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-              />
+              <label style={{ display: 'block', marginBottom: 12, fontSize: '16px', fontWeight: 600, color: '#0021A5' }}>
+                Classes (select all that apply)
+              </label>
+              <div style={{ 
+                border: '2px solid #e5ecff', 
+                borderRadius: 12, 
+                padding: 12, 
+                backgroundColor: '#fafbff',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                gap: 10
+              }}>
+                {CLASS_OPTIONS.map(c => (
+                  <label key={c} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', backgroundColor: editedProfile?.classes?.includes(c) ? '#e5ecff' : 'transparent', border: editedProfile?.classes?.includes(c) ? '2px solid #0021A5' : '2px solid transparent' }}>
+                    <input type="checkbox" checked={editedProfile?.classes?.includes(c)} onChange={(e) => {
+                      const checked = e.target.checked
+                      setEditedProfile((prev: any) => {
+                        const prevClasses = prev?.classes || []
+                        return { ...prev, classes: checked ? [...prevClasses, c] : prevClasses.filter((x: string) => x !== c) }
+                      })
+                    }} style={{ width: 18, height: 18, accentColor: '#0021A5' }} />
+                    <span style={{ fontSize: 14 }}>{c}</span>
+                  </label>
+                ))}
+              </div>
             </div>
+
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Study Preference</label>
-              <input
-                type="text"
-                value={editedProfile?.studyPreference || ''}
-                onChange={(e) => setEditedProfile({
-                  ...editedProfile,
-                  studyPreference: e.target.value
-                })}
-                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-              />
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Academic year</label>
+              <select value={editedProfile?.academicYear || ''} onChange={(e) => setEditedProfile({ ...editedProfile, academicYear: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: 8, border: '2px solid #e5ecff', backgroundColor:'#fafbff' }}>
+                {ACADEMIC_YEARS.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
+              </select>
             </div>
+
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Academic Year</label>
-              <input
-                type="text"
-                value={editedProfile?.academicYear || ''}
-                onChange={(e) => setEditedProfile({
-                  ...editedProfile,
-                  academicYear: e.target.value
-                })}
-                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-              />
+              <label style={{ display: 'block', marginBottom: 12, fontSize: '16px', fontWeight: 600, color: '#0021A5' }}>
+                Study goals (select all that apply)
+              </label>
+              <div style={{ border: '2px solid #e5ecff', borderRadius: 12, padding: 12, backgroundColor: '#fafbff', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {STUDY_GOALS.map(g => (
+                  <label key={g.value} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', backgroundColor: editedProfile?.studyGoal?.includes(g.value) ? '#e5ecff' : 'transparent', border: editedProfile?.studyGoal?.includes(g.value) ? '2px solid #0021A5' : '2px solid transparent' }}>
+                    <input type="checkbox" checked={editedProfile?.studyGoal?.includes(g.value)} onChange={() => {
+                      setEditedProfile((prev: any) => {
+                        const prevGoals = prev?.studyGoal || []
+                        return { ...prev, studyGoal: prevGoals.includes(g.value) ? prevGoals.filter((x: string) => x !== g.value) : [...prevGoals, g.value] }
+                      })
+                    }} style={{ width: 18, height: 18, accentColor: '#0021A5' }} />
+                    <span style={{ fontSize: 15 }}>{g.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
+
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Study Frequency</label>
-              <input
-                type="text"
-                value={editedProfile?.studyFrequency || ''}
-                onChange={(e) => setEditedProfile({
-                  ...editedProfile,
-                  studyFrequency: e.target.value
-                })}
-                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-              />
+              <select value={editedProfile?.studyFrequency || ''} onChange={(e) => setEditedProfile({ ...editedProfile, studyFrequency: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: 8, border: '2px solid #e5ecff', backgroundColor:'#fafbff' }}>
+                {STUDY_FREQUENCIES.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </select>
             </div>
-            <button
-              className="btn"
-              onClick={saveProfile}
-              disabled={saving}
-              style={{ padding: '8px 16px' }}
-            >
-              {saving ? 'Saving...' : '✓ Save Changes'}
-            </button>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Study Preference</label>
+              <select value={editedProfile?.studyPreference || ''} onChange={(e) => setEditedProfile({ ...editedProfile, studyPreference: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: 8, border: '2px solid #e5ecff', backgroundColor:'#fafbff' }}>
+                {STUDY_PREFERENCES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+
+            <div style={{ marginTop: 8 }}>
+              <button className="btn" onClick={saveProfile} disabled={saving} style={{ padding: '10px 16px' }}>{saving ? 'Saving...' : '✓ Save Changes'}</button>
+            </div>
           </>
         )}
       </div>
