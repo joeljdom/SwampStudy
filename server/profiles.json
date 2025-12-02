@@ -1,4 +1,16 @@
 {
+  "123": {
+    "classes": [
+      "PHY2048",
+      "PHY2050"
+    ],
+    "studyPreference": "long",
+    "academicYear": "senior",
+    "studyGoal": [
+      "homework"
+    ],
+    "studyFrequency": "once"
+  },
   "ethan435": {
     "classes": [
       "PHY2049",

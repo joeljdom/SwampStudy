@@ -5,7 +5,7 @@
     "setup": "node setup.js",
     "install:server": "npm --prefix server install",
     "install:client": "npm --prefix client install",
-    "fix:permissions": "node -e \"if(process.platform!=='win32'){const fs=require('fs'),path=require('path');['client','server'].forEach(dir=>{const bin=path.join(dir,'node_modules','.bin');if(fs.existsSync(bin)){fs.readdirSync(bin).forEach(f=>{try{fs.chmodSync(path.join(bin,f),'755')}catch(e){}});}});}\"",
+    "fix:permissions": "node -e \"if(process.platform!=='win32'){const fs=require('fs'),path=require('path');['client','server'].forEach(dir=>{const bin=path.join(dir,'node_modules','.bin');if(fs.existsSync(bin)){fs.readdirSync(bin).forEach(f=>{try{fs.chmodSync(path.join(bin,f),0o755)}catch(e){}});}});}\"",
     "postinstall": "npm run install:server && npm run install:client && npm run fix:permissions",
     "dev": "concurrently \"npm --prefix server run start\" \"npm --prefix client run dev\"",
     "start:server": "npm --prefix server start",
