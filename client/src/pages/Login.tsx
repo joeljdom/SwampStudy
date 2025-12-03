@@ -21,7 +21,7 @@ export default function Login({ onAuth }: Props) {
       const res = await fetch(`/api/${mode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password: password.trim(), isAdmin: mode === 'signup' && isAdmin })
+        body: JSON.stringify({ username: username.trim(), password: password.trim(), isAdmin: false })
       })
       const data = await res.json()
       if (!res.ok) {
@@ -52,17 +52,7 @@ export default function Login({ onAuth }: Props) {
         <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" required />
         <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Password" required />
         
-        {mode === 'signup' && (
-          <label style={{ display: 'flex', alignItems: 'center', margin: '12px 0', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={isAdmin}
-              onChange={(e) => setIsAdmin(e.target.checked)}
-              style={{ marginRight: '8px' }}
-            />
-            <span>Register as Admin</span>
-          </label>
-        )}
+        {/* Admin registration removed. All signups are regular users. */}
         
         <div className="error">{error}</div>
         <button className="btn" type="submit">{mode === 'login' ? 'Log In' : 'Sign Up'}</button>
