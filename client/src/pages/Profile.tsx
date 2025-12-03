@@ -12,6 +12,7 @@ type Props = {
 
 export default function Profile({ username, onDone, goHome }: Props) {
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])
+  const [classSearch, setClassSearch] = useState('')
   const [studyPref, setStudyPref] = useState<string>(STUDY_PREFERENCES[0].value)
   const [academicYear, setAcademicYear] = useState<string>(ACADEMIC_YEARS[0].value)
   const [studyGoals, setStudyGoals] = useState<string[]>([])
@@ -140,6 +141,26 @@ export default function Profile({ username, onDone, goHome }: Props) {
           <label style={{ display: 'block', marginBottom: 12, fontSize: '16px', fontWeight: 600, color: '#0021A5' }}>
             Classes (select all that apply)
           </label>
+          <input
+            type="text"
+            value={classSearch}
+            onChange={e => setClassSearch(e.target.value)}
+            placeholder="Search classes..."
+            style={{
+              width: '100%',
+              maxWidth: 400,
+              marginBottom: 12,
+              padding: '8px 12px',
+              border: '1px solid #e5ecff',
+              borderRadius: 8,
+              fontSize: '15px',
+              backgroundColor: '#fafbff',
+              outline: 'none',
+              transition: 'border-color 0.2s'
+            }}
+            onFocus={e => e.currentTarget.style.borderColor = '#0021A5'}
+            onBlur={e => e.currentTarget.style.borderColor = '#e5ecff'}
+          />
           <div style={{ 
             border: '2px solid #e5ecff', 
             borderRadius: 12, 
@@ -149,7 +170,7 @@ export default function Profile({ username, onDone, goHome }: Props) {
             gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
             gap: 12
           }}>
-            {CLASS_OPTIONS.map(c => (
+            {CLASS_OPTIONS.filter(c => c.toLowerCase().includes(classSearch.toLowerCase())).map(c => (
               <label 
                 key={c} 
                 style={{ 
