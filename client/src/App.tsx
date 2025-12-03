@@ -11,11 +11,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminUserDetail from './pages/AdminUserDetail'
 
 type Page = 'home' | 'calendar' | 'login' | 'profile' | 'matches' | 'notifications' | 'friends' | 'dms' | 'admin-dashboard' | 'admin-user-detail' | 'friend-calendar'
-  const [friendCalendarUser, setFriendCalendarUser] = useState<string | null>(null)
-  const handleViewFriendCalendar = (friendUsername: string) => {
-    setFriendCalendarUser(friendUsername)
-    setPage('friend-calendar')
-  }
+// ...existing code...
 
 type UserData = {
   username: string
@@ -27,6 +23,11 @@ export default function App() {
   const [page, setPage] = useState<Page>('login')
   const [dmsFriend, setDmsFriend] = useState<string | null>(null)
   const [selectedAdminUser, setSelectedAdminUser] = useState<string | null>(null)
+  const [friendCalendarUser, setFriendCalendarUser] = useState<string | null>(null)
+  const handleViewFriendCalendar = (friendUsername: string) => {
+    setFriendCalendarUser(friendUsername)
+    setPage('friend-calendar')
+  }
 
   useEffect(() => {
     const u = localStorage.getItem('swamp_user')
