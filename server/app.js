@@ -533,33 +533,49 @@ app.get("/api/admin/search/:adminUsername", async (req, res) => {
 app.get("/api/admin/user/:adminUsername/:targetUsername", async (req, res) => {
   try {
     const { adminUsername, targetUsername } = req.params;
+    console.log('Admin user details request:', { adminUsername, targetUsername });
 
     // Verify user is admin
     const admin = await User.findOne({ username: adminUsername });
     if (!admin || admin.role !== "admin") {
+      console.error('Admin auth failed:', { admin: admin?.username, role: admin?.role });
       return res.status(403).json({ error: "Unauthorized: admin access required" });
     }
 
     // Get user profile
     const profile = await Profile.findOne({ username: targetUsername }).lean();
+    console.log('Profile found:', !!profile);
     
     // Get user's friends
     const relationship = await Relationship.findOne({ username: targetUsername }).lean();
     const friends = relationship?.friends || [];
+    console.log('Friends found:', friends.length);
 
     // Get user's availability/calendar
-    const availability = await Availability.findOne({ username: targetUsername }).lean();
-    const calendar = availability?.dates ? Object.fromEntries(availability.dates) : {};
+    const availability = await Availability.findOne({ username: targetUsername });
+    console.log('Availability found:', !!availability);
+    
+    // Convert Mongoose Map to plain object
+    let calendar = {};
+    if (availability) {
+      // Use toJSON to automatically convert Mongoose Map to plain object
+      const availabilityObj = availability.toJSON();
+      calendar = availabilityObj.dates || {};
+      console.log('Calendar converted successfully, keys:', Object.keys(calendar).length);
+    }
 
-    res.json({
+    const response = {
       username: targetUsername,
       profile,
       friends,
       calendar
-    });
+    };
+    console.log('Sending response with calendar keys:', Object.keys(calendar).length);
+    res.json(response);
   } catch (error) {
     console.error("Get admin user details error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ error: "Internal server error: " + error.message });
   }
 });
 
@@ -602,6 +618,45 @@ app.post("/api/admin/user/:adminUsername/:targetUsername", async (req, res) => {
   } catch (error) {
     console.error("Edit profile error:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Admin: Update user availability
+app.post("/api/admin/availability/:adminUsername/:targetUsername", async (req, res) => {
+  try {
+    const { adminUsername, targetUsername } = req.params;
+    const { date, status } = req.body;
+    console.log('Admin update availability request:', { adminUsername, targetUsername, date, status });
+
+    // Verify user is admin
+    const admin = await User.findOne({ username: adminUsername });
+    if (!admin || admin.role !== "admin") {
+      console.error('Admin auth failed for availability update');
+      return res.status(403).json({ error: "Unauthorized: admin access required" });
+    }
+
+    if (!date || !status) {
+      console.error('Missing date or status:', { date, status });
+      return res.status(400).json({ error: "date and status required" });
+    }
+
+    let availability = await Availability.findOne({ username: targetUsername });
+    console.log('Found existing availability:', !!availability);
+    
+    if (!availability) {
+      availability = new Availability({ username: targetUsername, dates: new Map() });
+      console.log('Created new availability record');
+    }
+
+    availability.dates.set(date, status);
+    await availability.save();
+    console.log('Availability saved successfully');
+    
+    res.json({ ok: true, date, status });
+  } catch (error) {
+    console.error("Admin update availability error:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ error: "Internal server error: " + error.message });
   }
 });
 
