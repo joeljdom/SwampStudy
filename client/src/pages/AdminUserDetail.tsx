@@ -39,8 +39,13 @@ export default function AdminUserDetail({ adminUsername, targetUsername, onBack 
       const res = await fetch(
         `/api/admin/user/${encodeURIComponent(adminUsername)}/${encodeURIComponent(targetUsername)}`
       )
-      if (!res.ok) throw new Error('Failed to load user details')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Load user details failed:', res.status, errData)
+        throw new Error(errData.error || 'Failed to load user details')
+      }
       const data = await res.json()
+      console.log('Loaded user details:', data)
       setDetails(data)
       setEditedProfile({
         classes: Array.isArray(data.profile?.classes) ? data.profile.classes : [],
@@ -210,22 +215,24 @@ export default function AdminUserDetail({ adminUsername, targetUsername, onBack 
         <h3>Availability Calendar</h3>
         {details.calendar && Object.keys(details.calendar).length > 0 ? (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 16 }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #ddd' }}>
-                  <th style={{ padding: '8px', textAlign: 'left' }}>Date</th>
-                  <th style={{ padding: '8px', textAlign: 'left' }}>Status</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: 600, color: 'var(--uf-blue)' }}>Date</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: 600, color: 'var(--uf-blue)' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(details.calendar).map(([date, status]) => (
-                  <tr key={date} style={{ borderBottom: '1px solid #ddd' }}>
-                    <td style={{ padding: '8px' }}>{date}</td>
-                    <td style={{ padding: '8px' }}>
+                {Object.entries(details.calendar).sort(([a], [b]) => a.localeCompare(b)).map(([date, status]) => (
+                  <tr key={date} style={{ borderBottom: '1px solid #e5ecff' }}>
+                    <td style={{ padding: '10px 8px' }}>{new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                    <td style={{ padding: '10px 8px' }}>
                       <span
                         style={{
-                          padding: '4px 8px',
-                          borderRadius: '4px',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          fontWeight: 500,
                           backgroundColor: status === 'available' ? '#d4edda' : '#f8d7da',
                           color: status === 'available' ? '#155724' : '#721c24'
                         }}
@@ -239,7 +246,7 @@ export default function AdminUserDetail({ adminUsername, targetUsername, onBack 
             </table>
           </div>
         ) : (
-          <p style={{ color: '#666', fontStyle: 'italic' }}>No calendar data</p>
+          <p style={{ color: '#666', fontStyle: 'italic', marginTop: 8 }}>No availability data set</p>
         )}
       </div>
     </div>
