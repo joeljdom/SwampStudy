@@ -10,7 +10,12 @@ import DMs from './pages/DMs'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminUserDetail from './pages/AdminUserDetail'
 
-type Page = 'home' | 'calendar' | 'login' | 'profile' | 'matches' | 'notifications' | 'friends' | 'dms' | 'admin-dashboard' | 'admin-user-detail'
+type Page = 'home' | 'calendar' | 'login' | 'profile' | 'matches' | 'notifications' | 'friends' | 'dms' | 'admin-dashboard' | 'admin-user-detail' | 'friend-calendar'
+  const [friendCalendarUser, setFriendCalendarUser] = useState<string | null>(null)
+  const handleViewFriendCalendar = (friendUsername: string) => {
+    setFriendCalendarUser(friendUsername)
+    setPage('friend-calendar')
+  }
 
 type UserData = {
   username: string
@@ -68,7 +73,8 @@ export default function App() {
 
   if (page === 'notifications') return <Notifications username={user!.username} onBack={goHome} goHome={goHome} />
 
-  if (page === 'friends') return <Friends username={user!.username} onBack={goHome} goHome={goHome} onMessageClick={handleMessageFriend} />
+  if (page === 'friends') return <Friends username={user!.username} onBack={goHome} goHome={goHome} onMessageClick={handleMessageFriend} onViewCalendar={handleViewFriendCalendar} />
+  if (page === 'friend-calendar' && friendCalendarUser) return <Calendar username={friendCalendarUser} onBack={goHome} goHome={goHome} readonly={true} />
 
   if (page === 'dms') return <DMs username={user!.username} onBack={goHome} goHome={goHome} initialFriend={dmsFriend || undefined} />
 

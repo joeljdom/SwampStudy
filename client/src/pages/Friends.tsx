@@ -5,6 +5,7 @@ type Props = {
   onBack: () => void
   goHome: () => void
   onMessageClick?: (friendUsername: string) => void
+  onViewCalendar?: (friendUsername: string) => void
 }
 
 type ProfileData = {
@@ -20,7 +21,7 @@ type Friend = {
   profile: ProfileData | null
 }
 
-export default function Friends({ username, onBack, goHome, onMessageClick }: Props) {
+export default function Friends({ username, onBack, goHome, onMessageClick, onViewCalendar }: Props) {
   const [friendsList, setFriendsList] = useState<Friend[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -88,17 +89,28 @@ export default function Friends({ username, onBack, goHome, onMessageClick }: Pr
           </p>
           {friendsList.map((friend) => (
             <div key={friend.username} className="card" style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                 <h3 style={{ margin: '0 0 12px 0' }}>{friend.username}</h3>
-                {onMessageClick && (
-                  <button
-                    className="btn"
-                    onClick={() => onMessageClick(friend.username)}
-                    style={{ padding: '6px 12px', fontSize: '14px' }}
-                  >
-                    💬 Message
-                  </button>
-                )}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {onViewCalendar && (
+                    <button
+                      className="btn"
+                      onClick={() => onViewCalendar(friend.username)}
+                      style={{ padding: '6px 12px', fontSize: '14px' }}
+                    >
+                      📅 View Calendar
+                    </button>
+                  )}
+                  {onMessageClick && (
+                    <button
+                      className="btn"
+                      onClick={() => onMessageClick(friend.username)}
+                      style={{ padding: '6px 12px', fontSize: '14px' }}
+                    >
+                      💬 Message
+                    </button>
+                  )}
+                </div>
               </div>
               
               {friend.profile ? (

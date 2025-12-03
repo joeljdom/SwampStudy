@@ -4,6 +4,7 @@ type Props = {
   username: string
   onBack: () => void
   goHome: () => void
+  readonly?: boolean
 }
 
 function getEasternNow() {
@@ -11,7 +12,7 @@ function getEasternNow() {
   return new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }))
 }
 
-export default function Calendar({ username, onBack, goHome }: Props) {
+export default function Calendar({ username, onBack, goHome, readonly }: Props) {
   const [current, setCurrent] = useState<Date>(() => getEasternNow())
   const [availability, setAvailability] = useState<Record<string, string>>({})
   const [modalDate, setModalDate] = useState<string | null>(null)
@@ -68,6 +69,7 @@ export default function Calendar({ username, onBack, goHome }: Props) {
   const weeks = useMemo(buildCalendarGrid, [month, year])
 
   async function saveAvailability(date: string, status: string) {
+    if (readonly) return;
     try {
       const res = await fetch(`/api/availability/${username}`, {
         method: 'POST',
@@ -85,7 +87,7 @@ export default function Calendar({ username, onBack, goHome }: Props) {
   }
 
   function openModalFor(day: number | null) {
-    if (!day) return
+    if (!day || readonly) return
     const d = new Date(year, month, day)
     setModalDate(formatDate(d))
   }
@@ -166,7 +168,7 @@ export default function Calendar({ username, onBack, goHome }: Props) {
         </div>
       </div>
 
-      {modalDate && (
+      {modalDate && !readonly && (
         <div className="modal show" onClick={(e) => {
           if (e.target === e.currentTarget) closeModal()
         }}>
