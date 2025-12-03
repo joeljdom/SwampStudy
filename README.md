@@ -8,7 +8,7 @@
 
 ## 1. Clone the repo
 ```powershell
-git clone https://github.com/joeljdom/SwampStudy.git
+git clone https://github.com/<user>/SwampStudy.git
 cd SwampStudy
 ```
 
