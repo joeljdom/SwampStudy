@@ -1,3 +1,4 @@
+![SwampStudy Logo](public/gatorbanner.png)
 
 # Minimal Setup Instructions
 
